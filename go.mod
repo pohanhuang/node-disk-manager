@@ -38,7 +38,7 @@ replace (
 require (
 	github.com/ehazlett/simplelog v0.0.0-20200226020431-d374894e92a4
 	github.com/google/uuid v1.6.0
-	github.com/harvester/go-common v0.0.0-20260108124725-70d352e21314
+	github.com/harvester/go-common v0.0.0-20260609110837-30467f751774
 	github.com/harvester/harvester v1.5.1
 	github.com/harvester/webhook v0.1.5
 	github.com/jaypipes/ghw v0.8.1-0.20210701154532-dd036bd38c40

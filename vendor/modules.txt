@@ -66,8 +66,8 @@ github.com/google/uuid
 # github.com/gorilla/mux v1.8.1
 ## explicit; go 1.20
 github.com/gorilla/mux
-# github.com/harvester/go-common v0.0.0-20260108124725-70d352e21314
-## explicit; go 1.25
+# github.com/harvester/go-common v0.0.0-20260609110837-30467f751774
+## explicit; go 1.25.7
 github.com/harvester/go-common/common
 github.com/harvester/go-common/ds
 # github.com/harvester/harvester v1.5.1
