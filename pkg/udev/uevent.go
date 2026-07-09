@@ -11,6 +11,7 @@ import (
 
 	"github.com/pilebones/go-udev/netlink"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/harvester/node-disk-manager/pkg/block"
 	"github.com/harvester/node-disk-manager/pkg/controller/blockdevice"
@@ -26,6 +27,12 @@ type Udev struct {
 	injectError bool
 }
 
+type udevMonitorInterface interface {
+	Setup(ctx context.Context) error
+	Monitor(ctx context.Context) error
+	Teardown() error
+}
+
 func NewUdev(opt *option.Option, scanner *blockdevice.Scanner) *Udev {
 	return &Udev{
 		startOnce:   sync.Once{},
@@ -39,22 +46,51 @@ func NewUdev(opt *option.Option, scanner *blockdevice.Scanner) *Udev {
 func (u *Udev) Monitor(ctx context.Context) {
 	// we need to respawn the monitor with any error.
 	// because any error will break the monitor loop.
-	errChan := make(chan error)
-	go u.spawnMonitor(ctx, errChan)
-	go u.watchMounts(ctx)
+
+	// Register all monitors
+	monitors := u.getMonitors()
+	for _, mon := range monitors {
+		go u.startMonitor(ctx, mon.name, mon.monitor)
+	}
 }
 
-func (u *Udev) spawnMonitor(ctx context.Context, errChan chan error) {
-	go u.monitor(ctx, errChan)
-	for {
-		select {
-		case err := <-errChan:
-			logrus.Errorf("failed to monitor udev events, error: %s", err.Error())
-			go u.monitor(ctx, errChan)
-		case <-ctx.Done():
-			return
-		}
+// monitorConfig holds monitor name and instance
+type monitorConfig struct {
+	name    string
+	monitor udevMonitorInterface
+}
+
+// getMonitors returns all configured monitors
+func (u *Udev) getMonitors() []monitorConfig {
+	return []monitorConfig{
+		{name: "udev-monitor", monitor: newNetlinkMonitor(u)},
+		{name: "mount-watcher", monitor: newMountMonitor(u)},
 	}
+}
+
+// startMonitor starts a monitor service with automatic setup/teardown lifecycle
+func (u *Udev) startMonitor(ctx context.Context, name string, mon udevMonitorInterface) {
+	registerMonitorService(ctx, name, func(ctx context.Context) error {
+		if err := mon.Setup(ctx); err != nil {
+			return err
+		}
+		defer mon.Teardown()
+		return mon.Monitor(ctx)
+	})
+}
+
+// until ctx is cancelled. Only one instance of fn runs at a time,
+// preventing goroutine accumulation on repeated failures.
+func registerMonitorService(ctx context.Context, name string, fn func(context.Context) error) {
+	logrus.Infof("%s starts", name)
+
+	wait.UntilWithContext(ctx, func(ctx context.Context) {
+		if err := fn(ctx); err != nil {
+			logrus.Errorf("%s failed: %v", name, err)
+		}
+	}, 0)
+
+	logrus.Infof("%s stopped", name)
 }
 
 func (u *Udev) monitor(ctx context.Context, errors chan error) {
