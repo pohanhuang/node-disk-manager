@@ -39,7 +39,7 @@ require (
 	github.com/ehazlett/simplelog v0.0.0-20200226020431-d374894e92a4
 	github.com/google/uuid v1.6.0
 	github.com/harvester/go-common v0.0.0-20260108124725-70d352e21314
-	github.com/harvester/harvester v1.5.1
+	github.com/harvester/harvester v1.5.2
 	github.com/harvester/webhook v0.1.5
 	github.com/jaypipes/ghw v0.8.1-0.20210701154532-dd036bd38c40
 	github.com/kevinburke/ssh_config v1.2.0
@@ -64,7 +64,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
+	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/evanphx/json-patch v5.9.11+incompatible // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
